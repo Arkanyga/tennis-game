@@ -1,7 +1,7 @@
 
 const PADDLE_HEIGHT = 100,
   PADDLE_THICKNESS = 10,
-  WINNING_SCORE = 2,
+  WINNING_SCORE = 7,
   canvas = document.getElementById('gameCanvas'),
   canvasContext = canvas.getContext('2d');
 
@@ -13,11 +13,14 @@ let ballX = canvas.width / 2,
   ballSpeedY = 0,
   paddle1Y = 250,
   paddle2Y = 250,
-  computerSpeed = 4,
+  computerSpeed = 6,
   ballRadius = 10,
   isWin = false,
+  hitCounter = 0,
   rightPlayerScore = 0,
   leftPlayerScore = 0;
+let collisionSound = new Sound('sound/Blip_Select');
+let missSound = new Sound('sound/miss');
 
 
 window.onload = function () {
@@ -51,9 +54,9 @@ function drawEverething() {
   //circle
   colorCircle(ballX, ballY, ballRadius, 'white');
   //left paddle
-  colorRect(0, paddle1Y, PADDLE_THICKNESS, 100, 'white');
+  colorRect(0, paddle1Y, PADDLE_THICKNESS, PADDLE_HEIGHT, 'white');
   //right paddle
-  colorRect(canvas.width - PADDLE_THICKNESS, paddle2Y, PADDLE_THICKNESS, 100, 'white');
+  colorRect(canvas.width - PADDLE_THICKNESS, paddle2Y, PADDLE_THICKNESS, PADDLE_HEIGHT, 'white');
   if (isWin) {
     canvasContext.fillStyle = 'white';
     if (leftPlayerScore === WINNING_SCORE) {
@@ -84,11 +87,16 @@ function moveEverething() {
   moveComputerPaddle();
   if (ballX > canvas.width - ballRadius) {
     if (ballY > paddle2Y && ballY < paddle2Y + PADDLE_HEIGHT) {
+      collisionSound.play();
       ballSpeedX *= -1;
       let deltaY = ballY - (paddle2Y + (PADDLE_HEIGHT / 2));
       ballSpeedY = deltaY * 0.2;
+      hitCounter++;
+      upBallSpeed(hitCounter)
+      console.log(ballSpeedX, hitCounter)
     } else {
       leftPlayerScore++;
+      missSound.play();
       if (leftPlayerScore === WINNING_SCORE) {
         startPosition();
       }
@@ -98,11 +106,18 @@ function moveEverething() {
 
   if (ballX < ballRadius) {
     if (ballY > paddle1Y && ballY < paddle1Y + PADDLE_HEIGHT) {
+      collisionSound.play();
       ballSpeedX *= -1;
       let deltaY = ballY - (paddle1Y + (PADDLE_HEIGHT / 2));
       ballSpeedY = deltaY * 0.2;
+      hitCounter++;
+      upBallSpeed(hitCounter)
+
+      console.log(ballSpeedX, hitCounter)
+
     } else {
       rightPlayerScore++;
+      missSound.play();
       if (rightPlayerScore === WINNING_SCORE) {
         startPosition()
       }
@@ -128,10 +143,10 @@ function calculateMousePos(e) {
 }
 
 function ballReset() {
-  let newSpeed = ballSpeedX;
-  ballCenter()
+  ballCenter();
+  hitCounter = 0;
   setTimeout(function () {
-    ballSpeedX = -1 * newSpeed;
+    ballSpeedX = speedX;
   }, 700)
 }
 
@@ -165,3 +180,10 @@ function ballCenter() {
   ballSpeedY = 0;
 }
 
+function upBallSpeed(hitCounter) {
+  if (hitCounter === 4) {
+    ballSpeedX *= 1.5;
+  } else if (hitCounter === 12) {
+    ballSpeedX *= 1.5;
+  }
+}
